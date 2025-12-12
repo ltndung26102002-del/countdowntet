@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tết 2026</title>
+  <!-- Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0f1724; --card:#0b1220; --accent:#f59e0b; --muted:#9aa4b2; color-scheme: dark; }
+    body{margin:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#071029 0%, #091426 100%);color:#e6eef8;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px;}
+    .wrap{max-width:860px;width:100%;display:grid;gap:18px;grid-template-columns:1fr 1fr;}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:20px;border-radius:12px;box-shadow:0 6px 30px rgba(2,6,23,0.6);}
+    h1{font-size:18px;margin:0 0 8px 0}
+    .big{font-size:40px;font-weight:700;color:var(--accent);letter-spacing:-1px}
+    .small{font-size:13px;color:var(--muted)}
+    .units{display:flex;gap:8px;margin-top:12px}
+    .unit{background:rgba(255,255,255,0.03);padding:12px;border-radius:8px;min-width:74px;text-align:center}
+    .unit .n{font-size:20px;font-weight:700}
+    .controls{grid-column:1/-1;display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:6px;flex-wrap:wrap}
+    .input-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    input[type=date]{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    button{padding:8px 12px;border-radius:8px;border:none;background:var(--accent);color:#071026;font-weight:700;cursor:pointer}
+    footer{grid-column:1/-1;color:var(--muted);font-size:13px;text-align:center;padding-top:6px}
+    @media (max-width:720px){ .wrap{grid-template-columns:1fr} .big{font-size:34px} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="card-solar">
+      <h1>Tết Dương — <span class="small">1/1 (mỗi năm)</span></h1>
+      <div class="big" id="solar-count">-- ngày</div>
+      <div class="units" id="solar-units">
+        <div class="unit"><div class="n" id="s-days">--</div><div class="small">Ngày</div></div>
+        <div class="unit"><div class="n" id="s-hours">--</div><div class="small">Giờ</div></div>
+        <div class="unit"><div class="n" id="s-mins">--</div><div class="small">Phút</div></div>
+        <div class="unit"><div class="n" id="s-secs">--</div><div class="small">Giây</div></div>
+      </div>
+    </div>
+
+    <div class="card" id="card-lunar">
+      <h1>Tết Âm — <span class="small" id="lunar-label">17/2/2026 (mặc định)</span></h1>
+      <div class="big" id="lunar-count">-- ngày</div>
+      <div class="units" id="lunar-units">
+        <div class="unit"><div class="n" id="l-days">--</div><div class="small">Ngày</div></div>
+        <div class="unit"><div class="n" id="l-hours">--</div><div class="small">Giờ</div></div>
+        <div class="unit"><div class="n" id="l-mins">--</div><div class="small">Phút</div></div>
+        <div class="unit"><div class="n" id="l-secs">--</div><div class="small">Giây</div></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="input-row">
+        <label class="small">Tùy chỉnh ngày Tết Âm: </label>
+        <input type="date" id="lunar-date" placeholder="YYYY-MM-DD" />
+        <button id="set-lunar">Cập nhật</button>
+        <button id="reset-lunar">Reset mặc định</button>
+      </div>
+      <div>
+        <button id="copy-btn">Sao chép thời gian</button>
+      </div>
+    </div>
+
+    <footer>&#169; Lê Thị Ngọc Dung</footer>
+  </div>
+
+  <script>
+  const lunarDefault = "2026-02-17";
+  const solarMonth = 0, solarDay = 1;
+
+  const el = id => document.getElementById(id);
+  const savedLunar = localStorage.getItem("lunar-date");
+  let lunarTarget = savedLunar ? new Date(savedLunar) : new Date(lunarDefault);
+
+  function nextSolarDate(now){
+    let y = now.getFullYear();
+    let t = new Date(y, solarMonth, solarDay, 0,0,0,0);
+    if (t <= now) t = new Date(y+1, solarMonth, solarDay,0,0,0,0);
+    return t;
+  }
+
+  function parseDateInput(s){
+    const p = s.split("-");
+    return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]),0,0,0,0);
+  }
+
+  function updateCountdown(target, prefixId){
+    const now = new Date();
+    let diff = Math.max(0, target - now);
+    const days = Math.floor(diff / (1000*60*60*24));
+    diff -= days * (1000*60*60*24);
+    const hours = Math.floor(diff / (1000*60*60));
+    diff -= hours * (1000*60*60);
+    const mins = Math.floor(diff / (1000*60));
+    diff -= mins * (1000*60);
+    const secs = Math.floor(diff / 1000);
+
+    el(prefixId + "-days").textContent = days;
+    el(prefixId + "-hours").textContent = String(hours).padStart(2,'0');
+    el(prefixId + "-mins").textContent = String(mins).padStart(2,'0');
+    el(prefixId + "-secs").textContent = String(secs).padStart(2,'0');
+
+    el(prefixId === "s" ? "solar-count" : "lunar-count").textContent =
+      days + " ngày " + String(hours).padStart(2,'0') + ":" +
+      String(mins).padStart(2,'0') + ":" + String(secs).padStart(2,'0');
+  }
+
+  function tick(){
+    const now = new Date();
+    updateCountdown(nextSolarDate(now), "s");
+    updateCountdown(lunarTarget, "l");
+  }
+  el("set-lunar").addEventListener("click", () => {
+    const val = el("lunar-date").value;
+    if (!val){ alert("Chọn ngày rồi ấn Cập nhật nhé"); return; }
+
+    lunarTarget = parseDateInput(val);
+    localStorage.setItem("lunar-date", val);
+
+    el("lunar-label").textContent = new Date(val).toLocaleDateString();
+    tick();
+  });
+
+
+  el("reset-lunar").addEventListener("click", () => {
+    lunarTarget = parseDateInput(lunarDefault);
+
+
+    localStorage.removeItem("lunar-date");
+
+    el("lunar-date").value = "";
+    el("lunar-label").textContent = new Date(lunarDefault).toLocaleDateString();
+    tick();
+  });
+
+  el("copy-btn").addEventListener("click", () => {
+    const text = "Còn: " + el("solar-count").textContent +
+                 " tới Tết Dương; " + el("lunar-count").textContent +
+                 " tới Tết Âm.";
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(
+        ()=> alert("Copied ✅"),
+        ()=> fallbackCopy(text)
+      );
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  function fallbackCopy(text){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    alert("Copied (fallback) ✅");
+  }
+
+  el("lunar-label").textContent =
+    (savedLunar ? new Date(savedLunar) : new Date(lunarDefault))
+    .toLocaleDateString();
+
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
