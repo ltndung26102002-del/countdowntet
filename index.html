@@ -199,9 +199,9 @@ function formatDateTimeLocal(date) {
   );
 }
 
-let lunarMode=localStorage.getItem("lunar-mode")||"auto";
+let lunarMode = localStorage.getItem("lunar-mode") || "auto";
 let lunarTarget;
-let lunarPhase = "lunar"; 
+let lunarPhase = lunarMode === "custom" ? "custom" : "lunar"; 
 let forcedSeconds = null;
 
 function getNextLunar(){
